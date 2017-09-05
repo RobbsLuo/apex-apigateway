@@ -1,0 +1,34 @@
+{
+  "name": "apex-apigateway",
+  "version": "0.0.1",
+  "description": "Deploy your Apex project on AWS API Gateway using Swagger configuration",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RobbsLuo/apex-apigateway.git"
+  },
+  "keywords": [
+    "aws",
+    "apex",
+    "swagger",
+    "aws api gateway",
+    "api gateway"
+  ],
+  "author": "Hongsheng Luo (Robbs)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RobbsLuo/apex-apigateway/issues"
+  },
+  "homepage": "https://github.com/RobbsLuo/apex-apigateway#readme",
+  "bin": {
+    "apex-apigateway": "index.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.108.0",
+    "cli-table": "^0.3.1",
+    "junk": "^2.1.0",
+    "lodash.defaultsdeep": "^4.6.0",
+    "yargs": "^8.0.2"
+  }
+}
