@@ -107,7 +107,7 @@ function create({ name, description, clone, force }) {
           'x-api-gateway': Object.assign({}, GConfig['x-api-gateway'], { 'rest-api-id': data.id }),
         }),
       null,
-      2,
+      2
     );
 
     FS.writeFile(ConfigPath, updatedConfig, (error) => {
