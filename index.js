@@ -21,7 +21,7 @@ function loadConfig(filePath = ConfigPath) {
   return JSON.parse(FS.readFileSync(filePath, 'utf8'));
 }
 
-function loadMethod(name) {
+function loadMethod(name, alias) {
   const tmp = {};
   const func = loadConfig(`${CurrentPath}/functions/${name}/function.json`);
   const template = GConfig['x-api-gateway']['swagger-func-template'];
@@ -39,7 +39,8 @@ function loadMethod(name) {
     description: func.description || '',
     'x-amazon-apigateway-integration': {
       httpMethod: 'post',
-      uri: template['x-amazon-apigateway-integration'].uri.replace('{{functionName}}', `${GConfig.name}_${name}`),
+      uri: template['x-amazon-apigateway-integration'].uri
+        .replace('{{functionName}}', alias ? `${GConfig.name}_${name}:${alias}` : `${GConfig.name}_${name}`),
     },
     parameters: x.parameters || [],
     security: x.security || [],
@@ -54,28 +55,27 @@ function loadMethod(name) {
   return tmp;
 }
 
-function loadMethods() {
+function loadMethods(alias) {
   const methods = {};
   FS.readdirSync(`${CurrentPath}/functions`).filter(Junk.not).forEach((folder) => {
-    defaultsDeep(methods, loadMethod(folder));
+    defaultsDeep(methods, loadMethod(folder, alias));
   });
   return methods;
 }
 
-function loadSwagger() {
+function loadSwagger(alias) {
   return {
     swagger: '2.0',
     info: {
       version: (new Date()).toISOString(),
       title: GConfig.name,
     },
-    basePath: GConfig['x-api-gateway'].base_path,
     schemes: [
       'https',
     ],
     'x-amazon-apigateway-request-validators': GConfig['x-api-gateway']['x-amazon-apigateway-request-validators'],
     'x-amazon-apigateway-request-validator': GConfig['x-api-gateway']['x-amazon-apigateway-request-validator'],
-    paths: loadMethods(),
+    paths: loadMethods(alias),
     securityDefinitions: GConfig['x-api-gateway'].securityDefinitions || {
       api_key: {
         type: 'apiKey',
@@ -117,14 +117,16 @@ function create({ name, description, clone, force }) {
   });
 }
 
-function deploy({ stdout }) {
+function deploy({ stdout, stage, alias }) {
   GConfig = loadConfig();
+  console.log(stage, alias);
+
   if (!GConfig['x-api-gateway'] || !GConfig['x-api-gateway']['rest-api-id']) {
     throw new Error('Missing RestAPI Id, you might want to use create command first.');
   }
 
   console.log('Loading Swagger...');
-  const swagger = loadSwagger();
+  const swagger = loadSwagger(alias);
 
   if (stdout) {
     process.stdout.write(JSON.stringify(swagger, null, 2));
@@ -140,14 +142,13 @@ function deploy({ stdout }) {
     if (err) {
       throw err;
     }
-
-    console.log(data);
     console.log('Updated API with success!');
+    console.log(data);
 
     console.log('Deploying REST API...');
     api.createDeployment({
       restApiId: GConfig['x-api-gateway']['rest-api-id'],
-      stageName: GConfig['x-api-gateway'].stage_name,
+      stageName: stage,
     }, (error, data1) => {
       if (error) {
         throw error;
@@ -155,6 +156,7 @@ function deploy({ stdout }) {
       console.log(data1);
       console.log('API deployed successfully!');
     });
+
   });
 }
 
@@ -165,13 +167,6 @@ function list() {
     colWidths: [25, 35, 85],
   });
   console.log(loadMethods());
-
-  // loadMethods().forEach((item) => {
-  //   for (const [key, value] of item) {
-  //     console.log(key + "'s phone number is: " + value);
-  //   }
-  // });
-
   console.log(table.toString());
 }
 
@@ -188,21 +183,24 @@ return Yargs.usage('Usage: $0 <command> [options]')
       type: 'boolean',
     },
   }, create)
-  .command(
-    'deploy',
-    'Deploy RestAPI with the new Swagger definitions', {
-      env: {
-        alias: 'e',
-        describe: 'Environment name',
-        type: 'string',
-      },
-      stdout: {
-        alias: 'o',
-        describe: 'Output swagger',
-        type: 'boolean',
-      },
+  .command('deploy', 'Update RestAPI with the new Swagger definitions', {
+    stage: {
+      alias: 's',
+      describe: 'API-Gateway Stage Name',
+      type: 'string',
+      default: 'development',
     },
-    deploy)
+    alias: {
+      alias: 'a',
+      describe: 'Lambda Alisa Name',
+      type: 'string',
+    },
+    stdout: {
+      alias: 'o',
+      describe: 'Output Swagger',
+      type: 'boolean',
+    },
+  }, deploy)
   .command('list', 'List RestAPI', list)
   .help()
   .argv;
