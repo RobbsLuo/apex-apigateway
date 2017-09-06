@@ -6,6 +6,7 @@ const Yargs = require('yargs');
 const AWS = require('aws-sdk');
 const Table = require('cli-table');
 const defaultsDeep = require('lodash.defaultsdeep');
+const entries = require('lodash.topairs');
 
 const api = new AWS.APIGateway();
 
@@ -46,7 +47,7 @@ function loadMethod(name, alias) {
     security: x.security || [],
   }, template);
 
-  Object.entries(GConfig['x-api-gateway'].paths).forEach(([key, value]) => {
+  entries(GConfig['x-api-gateway'].paths).forEach(([key, value]) => {
     const keyPattern = new RegExp(`^${key}$`);
     if (keyPattern.test(path)) {
       defaultsDeep(tmp[path], value);
@@ -165,8 +166,8 @@ function list() {
   const table = new Table({
     head: ['Name', 'PATH', 'Description'],
   });
-  Object.entries(loadMethods()).forEach(([path, value]) => {
-    Object.entries(value).forEach(([method, definitions]) => {
+  entries(loadMethods()).forEach(([path, value]) => {
+    entries(value).forEach(([method, definitions]) => {
       table.push([
         definitions.summary,
         `${method.toUpperCase()} ${path}`,
