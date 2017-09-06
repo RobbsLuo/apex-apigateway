@@ -164,9 +164,16 @@ function list() {
   GConfig = loadConfig();
   const table = new Table({
     head: ['Name', 'PATH', 'Description'],
-    colWidths: [25, 35, 85],
   });
-  console.log(loadMethods());
+  Object.entries(loadMethods()).forEach(([path, value]) => {
+    Object.entries(value).forEach(([method, definitions]) => {
+      table.push([
+        definitions.summary,
+        `${method.toUpperCase()} ${path}`,
+        definitions.description,
+      ]);
+    });
+  });
   console.log(table.toString());
 }
 
