@@ -1,6 +1,6 @@
 {
   "name": "apex-apigateway",
-  "version": "0.0.4",
+  "version": "0.1.4",
   "description": "Deploy your Apex project on AWS API Gateway using Swagger configuration",
   "main": "index.js",
   "scripts": {},
