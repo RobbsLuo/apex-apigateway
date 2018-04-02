@@ -76,6 +76,7 @@ function loadSwagger(alias) {
     ],
     'x-amazon-apigateway-request-validators': GConfig['x-api-gateway']['x-amazon-apigateway-request-validators'],
     'x-amazon-apigateway-request-validator': GConfig['x-api-gateway']['x-amazon-apigateway-request-validator'],
+    'x-amazon-apigateway-minimum-compression-size': GConfig['x-api-gateway']['x-amazon-apigateway-minimum-compression-size'],
     paths: loadMethods(alias),
     securityDefinitions: GConfig['x-api-gateway'].securityDefinitions || {
       api_key: {
